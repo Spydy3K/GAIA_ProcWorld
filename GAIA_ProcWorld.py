@@ -4,6 +4,8 @@ from tkinter import ttk
 from hashlib import md5
 from perlin_noise import PerlinNoise
 
+from math import trunc
+
 # # ~~ Window instantiated/Window frame ~~
 # root_title = 'GAIA' # Variable for the window name
 # root = Tk()
@@ -54,7 +56,7 @@ class World():
 
     def __init__(self):
         self.grid_size = 20
-        self.maxLayers = 1
+        self.maxLayers = 5
         self.world_grid = []
         self.type_emptycell = 1 ### DEBUGGING
 
@@ -115,32 +117,70 @@ class World():
                 row.append(noise_val) # appends each value assigned to a column
             heightmap.append(row) # appends each row into a 2D list
 
-        # ~~Quantising the map~~
+        # ~~Quantsizing the map~~
 
         highest_height = 0
         lowest_height = 0
         xvalue = 0
         zvalue = 0
-        high_pos = []
         
-        zNo = 0
+        quants = [] # generate the values that determine if its below or above sea level
+
+        half_layer = self.maxLayers // 2  # How I am doing it 2 layer worlds should not be possible (will be only ocean of 1 depth)
+        temp_quant = 0
+        print(half_layer)
+        for increment in range(0, self.maxLayers):
+            temp_quant = increment - half_layer # effectively the same as (-5 + 1) if you (me) are confused
+            quants.append(temp_quant)
+
+        print(f"quant boundaries: {quants}")
+
         for z in heightmap:
             for x in z:
-                xNo = 0
                 if x > highest_height:
                     highest_height = x
-                    xvalue = xNo
-                    zvalue = zNo
                 elif x < lowest_height:
                     lowest_height = x
                 else:
                     continue
-                xNo += 1
-            zNo += 1 
 
-        high_pos = [zvalue, xvalue]
-        print(f"Highest = {highest_height} and the lowest = {lowest_height}.... Pos = {high_pos}")
+        print(f"Highest = {highest_height} and the lowest = {lowest_height}....")
 
+        # Creating the boundaries of the quantised map according to the 3D array
+        diff = abs(highest_height - lowest_height) # to make sure the difference is a positive number
+        partion = diff / self.maxLayers
+        partion = round(partion, 8) # rounding to 8 decimal place instead of automatic 17 because of floating point arithmetic being wack or me being stupid
+
+        boundaries = []
+        height_increase = 0
+        temp_height = round(lowest_height, 8)
+
+        for boundary in range(0, self.maxLayers):
+            height_increase = partion * boundary
+            temp_height = temp_height + height_increase
+            temp_height = round(temp_height, 8)
+            boundaries.append(temp_height)
+            temp_height = lowest_height # This resets it back to the lowest to then be added onto
+
+        print(partion)
+        print(boundaries)
+        
+        # Simplifying the data finally
+        boundary_max = len(boundaries)
+        rowNo = 0
+        for row in heightmap:
+            columnNo = 0
+            for column in row:
+
+                for boundary in range(0, boundary_max):
+                    limit = boundaries[boundary]
+
+                    if column > limit:
+                        heightmap[rowNo][columnNo] = quants[boundary]
+                    else:
+                        continue
+                columnNo +=1
+            rowNo += 1
 
 
 
