@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 
 from hashlib import md5
+from typing import Self
 from perlin_noise import PerlinNoise
 
 from math import trunc
@@ -55,7 +56,7 @@ from math import trunc
 class World():
 
     def __init__(self):
-        self.grid_size = 20
+        self.grid_size = 10
         self.maxLayers = 5
         self.world_grid = []
         self.type_emptycell = 1 ### DEBUGGING
@@ -79,8 +80,7 @@ class World():
                     self.type_emptycell += 1 ### DEBUGGING to test what order values are added into the 2D array
                 rowNo += 1
             layerNo += 1
-        grid_print = True # Enables/Disables printing
-        gen_count = 0
+
 
     # ~~ Outputs the Grid ~~
     def outputGrid(self):
@@ -121,19 +121,17 @@ class World():
 
         highest_height = 0
         lowest_height = 0
-        xvalue = 0
-        zvalue = 0
-        
-        quants = [] # generate the values that determine if its below or above sea level
 
-        half_layer = self.maxLayers // 2  # How I am doing it 2 layer worlds should not be possible (will be only ocean of 1 depth)
+        self.quants = [] # generate the values that determine if its below or above sea level
+
+        half_layer = self.maxLayers // 2 
         temp_quant = 0
         print(half_layer)
         for increment in range(0, self.maxLayers):
             temp_quant = increment - half_layer # effectively the same as (-5 + 1) if you (me) are confused
-            quants.append(temp_quant)
+            self.quants.append(temp_quant)
 
-        print(f"quant boundaries: {quants}")
+        print(f"quant boundaries: {self.quants}")
 
         for z in heightmap:
             for x in z:
@@ -176,16 +174,56 @@ class World():
                     limit = boundaries[boundary]
 
                     if column > limit:
-                        heightmap[rowNo][columnNo] = quants[boundary]
+                        heightmap[rowNo][columnNo] = self.quants[boundary]
                     else:
                         continue
                 columnNo +=1
             rowNo += 1
 
 
-
-
         return heightmap
+
+    def terrainPass(self):
+
+        terrainMap = self.generateNoiseHeight()
+
+        type_sea = -1
+        type_land = 0
+        type_air = 1
+
+        layerNo = 0
+        print(self.quants)
+        for layer in range(0, self.maxLayers):
+            rowNo = 0 # resets every new layer
+
+            for row in range(0, self.grid_size):
+
+                for column in range(0, self.grid_size): # checking each column of the initialised grid.
+
+                    if self.quants[layerNo] < 0:
+                        if (terrainMap[rowNo][column] < self.quants[layerNo]) and (terrainMap[rowNo][column] < 0): # if the noise says it is less than the layer and the layer is below zero than it is land
+                            self.world_grid[layerNo][rowNo][column] = type_sea
+                        elif (terrainMap[rowNo][column] > self.quants[layerNo]) and (terrainMap[rowNo][column] < 0): # if the noise says it is more than the layer and the layer is more than or equal to zero than it is sea
+                            self.world_grid[layerNo][rowNo][column] = type_land
+                        elif (terrainMap[rowNo][column] == self.quants[layerNo]) and (terrainMap[rowNo][column] < 0): 
+                            self.world_grid[layerNo][rowNo][column] = type_sea
+                        elif (terrainMap[rowNo][column] > self.quants[layerNo]) and (terrainMap[rowNo][column] >= 0): 
+                            self.world_grid[layerNo][rowNo][column] = type_land
+                    else:
+                        if (terrainMap[rowNo][column] < self.quants[layerNo]) and (terrainMap[rowNo][column] < 0):
+                            self.world_grid[layerNo][rowNo][column] = type_air
+                        elif (terrainMap[rowNo][column] > self.quants[layerNo]):
+                            self.world_grid[layerNo][rowNo][column] = type_land
+                        elif (terrainMap[rowNo][column] == self.quants[layerNo]):
+                            self.world_grid[layerNo][rowNo][column] = type_land
+                        elif (terrainMap[rowNo][column] < self.quants[layerNo]) and (terrainMap[rowNo][column] >= 0):
+                            self.world_grid[layerNo][rowNo][column] = type_air
+
+
+                rowNo += 1
+
+            layerNo += 1
+
 
     def outputHeight(self):
         grid_print = True
@@ -195,8 +233,9 @@ class World():
                 print(x, end='\n')
             grid_print = False # Concluded and so it will stop
 
-#root.mainloop()
 Mappy = World()
 Mappy.initialiseGrid()
-Mappy.outputHeight()
+
+root.mainloop()
+
 ### TESTING TO UNDERSTAND HOW GITHUB WORKS
