@@ -1,3 +1,4 @@
+from ftplib import MAXLINE
 from tkinter import *
 from tkinter import ttk
 
@@ -14,8 +15,8 @@ from math import trunc
 class World():
 
     def __init__(self):
-        self.grid_size = 10
-        self.maxLayers = 5
+        self.grid_size = 100
+        self.maxLayers = 10
         self.world_grid = []
         self.type_emptycell = 1 ### DEBUGGING
 
@@ -44,16 +45,21 @@ class World():
     def outputGrid(self):
         grid_print = True
         while(grid_print):
-            layer_input = int(input(f"What layer would you like to see? [1 to {self.maxLayers}]: "))
-            layer_print = self.world_grid[layer_input-1]
-            for z in layer_print: # Should be printing the rows...
-                print(z, end='\n')
-            grid_print = False # Concluded and so it will stop
+            layer_input = int(input(f"What layer would you like to see? [1 to {self.maxLayers}] or '-1' to cancel: "))
+            if layer_input == -1:
+                grid_print = False # Concluded and so it will stop
+            elif layer_input >= 1 and layer_input <= self.maxLayers:
+                layer_print = self.world_grid[layer_input-1]
+                for z in layer_print: # Should be printing the rows...
+                    print(z, end='\n')
+            else:
+                print("Wrong value try again.")
+
     
     # ~~ Generate noise heigh map ~~
     # Because this is a height map I do not need to create a 3D map. It will just superimpose onto the 3D map.
-    def generateNoiseHeight(self):
-        hashy = "TempVariableValue"
+    def generateNoiseHeight(self, seedy):
+        hashy = seedy
         hexseedy = md5(str.encode(hashy)).hexdigest()[:16] # Digest is used to return the value of the hash, the square brackets are to truncate this to a smaller size.
         seedy = int(hexseedy, 16) # Turns this hexadecimal string back into base 10.
 
@@ -84,12 +90,12 @@ class World():
 
         half_layer = self.maxLayers // 2 
         temp_quant = 0
-        print(half_layer)
+        #print(half_layer)
         for increment in range(0, self.maxLayers):
             temp_quant = increment - half_layer # effectively the same as (-5 + 1) if you (me) are confused
             self.quants.append(temp_quant)
 
-        print(f"quant boundaries: {self.quants}")
+        #print(f"quant boundaries: {self.quants}")
 
         for z in heightmap:
             for x in z:
@@ -118,8 +124,8 @@ class World():
             boundaries.append(temp_height)
             temp_height = lowest_height # This resets it back to the lowest to then be added onto
 
-        print(partion)
-        print(boundaries)
+        #print(partion)
+        #print(boundaries)
         
         # Simplifying the data finally
         boundary_max = len(boundaries)
@@ -141,16 +147,16 @@ class World():
 
         return heightmap
 
-    def terrainPass(self):
+    def terrainPass(self, seedy):
 
-        terrainMap = self.generateNoiseHeight()
+        terrainMap = self.generateNoiseHeight(seedy)
 
         type_sea = -1
         type_land = 0
         type_air = 1
 
         layerNo = 0
-        print(self.quants)
+        #print(self.quants)
         for layer in range(0, self.maxLayers):
             rowNo = 0 # resets every new layer
 
@@ -183,6 +189,16 @@ class World():
             layerNo += 1
 
 
+    def initiateGeneration(self, seedyVar):
+
+        seedy = seedyVar.get()
+        seedy = seedy.strip()
+
+        self.initialiseGrid()
+        self.terrainPass(seedy)
+        self.outputGrid()
+
+
     def outputHeight(self):
         grid_print = True
         heightmap = self.generateNoiseHeight()
@@ -197,6 +213,8 @@ root = Tk()
 root.title(root_title)
 frm = ttk.Frame(root, padding=10)
 frm.grid()
+
+Mappy = World()
 
 #ttk.Button(frm, text="Quit", command=root.destroy).grid(column=1, row=0)
 
@@ -217,14 +235,15 @@ bottom_frm.grid(column=0,row=1, sticky="s")
 # Settings Widgets
 settings_label = ttk.Label(right_frm, text="Settings").grid(row=0, column=0 ,columnspan=2, sticky="n")
 
+seedyVar = StringVar()
 seed_label = ttk.Label(right_frm, text="Seed:").grid(row=1, column=0, sticky="e")
-seed_entry = ttk.Entry(right_frm).grid(row=1, column=1, sticky="w")
+seed_entry = ttk.Entry(right_frm, textvariable=seedyVar).grid(row=1, column=1, sticky="w")
 
 small_button = ttk.Button(right_frm, text="small").grid(row=2, column=0)
 medium_button = ttk.Button(right_frm, text="medium").grid(row=2, column=1)
 large_button = ttk.Button(right_frm, text="large").grid(row=2, column=2)
 
-generate_button = ttk.Button(right_frm, text="Start").grid(row=3, column=1, sticky="s")
+generate_button = ttk.Button(right_frm, text="Start", command=lambda : Mappy.initiateGeneration(seedyVar)).grid(row=3, column=1, sticky="s")
 
 # Generation Widgets
 entryGenerator = ttk.Entry(top_frm, background="pink", width=50).grid()
