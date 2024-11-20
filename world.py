@@ -29,22 +29,6 @@ class World():
                     self.type_emptycell += 1 ### DEBUGGING to test what order values are added into the 2D array
                 rowNo += 1
             layerNo += 1
-
-
-    # ~~ Outputs the Grid ~~
-    def outputGrid(self):
-        grid_print = True
-        while(grid_print):
-            layer_input = int(input(f"What layer would you like to see? [1 to {self.maxLayers}] or '-1' to cancel: "))
-            if layer_input == -1:
-                grid_print = False # Concluded and so it will stop
-            elif layer_input >= 1 and layer_input <= self.maxLayers:
-                layer_print = self.world_grid[layer_input-1]
-                for z in layer_print: # Should be printing the rows...
-                    print(z, end='\n')
-            else:
-                print("Wrong value try again.")
-
     
     # ~~ Generate noise heigh map ~~
     # Because this is a height map I do not need to create a 3D map. It will just superimpose onto the 3D map.
@@ -134,16 +118,20 @@ class World():
                 columnNo +=1
             rowNo += 1
 
-
         return heightmap
 
     def terrainPass(self, seedy):
 
         terrainMap = self.generateNoiseHeight(seedy)
 
-        type_sea = -1
-        type_land = 0
-        type_air = 1
+        type_sea = 0
+        type_land = 1
+        type_air = 2
+        # type_sea = [0, 1, 2, 3, 4]
+        # type_land = [5, 6, 7, 8]
+        # type_air = 9
+
+
 
         layerNo = 0
         #print(self.quants)
@@ -183,10 +171,9 @@ class World():
 
         seedy = seedyVar.get()
         seedy = seedy.strip()
-
         self.initialiseGrid()
         self.terrainPass(seedy)
-        self.outputGrid()
+        return self.world_grid
 
 
     def outputHeight(self):

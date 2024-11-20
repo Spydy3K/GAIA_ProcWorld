@@ -7,6 +7,9 @@ from tileset import Tileset
 from tkinter import *
 from tkinter import ttk
 
+# ~~ Variables ~~
+
+layer = 5
 
 # ~~ Window instantiated/Window frame ~~
 root_title = 'GAIA' # Variable for the window name
@@ -16,7 +19,7 @@ frm = ttk.Frame(root, padding=10)
 frm.grid()
 
 Mappy = World()
-
+tileset = Tileset(5)
 #ttk.Button(frm, text="Quit", command=root.destroy).grid(column=1, row=0)
 
 # Styling TTK
@@ -54,31 +57,37 @@ seed_entry.grid(row=1, column=1, sticky="w")
 small_button = ttk.Button(right_frm, text="small")
 medium_button = ttk.Button(right_frm, text="medium")
 large_button = ttk.Button(right_frm, text="large")
-small_button.grid(row=2, column=0)
-medium_button.grid(row=2, column=1)
-large_button.grid(row=2, column=2)
+small_button.grid(row=2, column=0, sticky="e")
+medium_button.grid(row=2, column=1, sticky="s")
+large_button.grid(row=2, column=2, sticky="w")
 
-generate_button = ttk.Button(right_frm, text="Start", command=lambda : Mappy.initiateGeneration(seedyVar))
+generate_button = ttk.Button(right_frm, text="Start", command=lambda : tileset.drawTiles(Mappy.initiateGeneration(seedyVar), canvas))
 generate_button.grid(row=3, column=1, sticky="s")
 
 # Canvas Widgets
 canvas = Canvas(canvas_frm, width=500, height=500, bg='lightgrey', border=0, highlightthickness = 0, highlightbackground = 'black')
 canvas.pack()
 
-rectangle = canvas.create_rectangle(0, 0, 5, 5, outline="springgreen1", width=10, fill="springgreen1")
+#rectangle = canvas.create_rectangle(0, 0, 5, 5, outline="springgreen1", width=0, fill="springgreen1")
 
-# LeftButton = ttk.Button(bottom_frm, text = "Left", padding=5).grid(row=0, column=0, sticky="e")
-# CentreButton = ttk.Button(bottom_frm, text = "Centre", padding=5).grid(row=0, column=1, sticky="nsew")
-# RightButton = ttk.Button(bottom_frm, text = "Right", padding=5).grid(row=0, column=2, sticky="w")
-
-LeftButton = ttk.Button(bottom_frm, text = "Left")
-CentreButton = ttk.Button(bottom_frm, text = "Populate", command=lambda : )
-RightButton = ttk.Button(bottom_frm, text = "Right")
+LeftButton = ttk.Button(bottom_frm, text = "Down", command=lambda : tileset.layerChange("Down"))
+CentreButton = ttk.Button(bottom_frm, text = "Redisplay", command=lambda : tileset.drawTiles(Mappy.world_grid, canvas))
+RightButton = ttk.Button(bottom_frm, text = "Right", command=lambda : tileset.layerChange("Up"))
 
 LeftButton.pack(side=LEFT)
 CentreButton.pack(side=LEFT)
 RightButton.pack(side=LEFT)
 
-root.mainloop()
+# seedyVar = "123ABC"
+# testingfile = open("idk.txt", "w")
+# temp = Mappy.initiateGeneration(seedyVar)
+# for x in temp[4]:
+#     tmpstr = str(x) + "\n"
+#     testingfile.write(tmpstr)S
+# testingfile.close()
+
+while True:
+    root.update_idletasks()
+    root.update()
 
 ### TESTING TO UNDERSTAND HOW GITHUB WORKS
