@@ -50,8 +50,8 @@ class Tileset():
         tmp_ypos = 0
         tmp_xpos = 0
 
-        #colour = ["midnight blue", "blue", "dodgerblue3", "deepskyblue3", "turqouise2", "darkolivegreen2", "green3", "springgreen3", "darkgoldenrod3", "gray"]
-        colour = ["dodgerblue3", "springgreen3", "gray"]
+        colour = ["slategray", "blue", "dodgerblue3", "deepskyblue3", "turquoise2", "darkolivegreen2", "green3", "springgreen3", "darkgoldenrod3", "azure"]
+        #colour = ["dodgerblue3", "springgreen3", "gray"]
 
         tmp_ycoord = 0
 
@@ -77,9 +77,9 @@ class Tileset():
                 xcount = 0
                 
             tmp_ycoord = coords[1]
-            print(f'tilemapcoords {xcount}, {zcount}')
+
             colour_choice = mapgrid[zcount][xcount]
-            print(f'tilemapcoords {xcount}, {zcount}')
+            print(colour_choice)
             
             canvas.create_rectangle(xpos, ypos, tmp_xpos, tmp_ypos, fill=colour[colour_choice], width=0)
             xpos = tmp_xpos
