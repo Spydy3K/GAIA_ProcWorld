@@ -5,7 +5,7 @@ from perlin_noise import PerlinNoise
 class World():
 
     def __init__(self):
-        self.grid_size = 100
+        self.grid_size = 20
         self.maxLayers = 10
         self.world_grid = []
         self.type_emptycell = 1 ### DEBUGGING
@@ -103,76 +103,83 @@ class World():
         
         # Simplifying the data finally
         boundary_max = len(boundaries)
-        rowNo = 0
+
         for row in heightmap:
-            columnNo = 0
+
             for column in row:
 
                 for boundary in range(0, boundary_max):
                     limit = boundaries[boundary]
 
                     if column > limit:
-                        heightmap[rowNo][columnNo] = self.quants[boundary]
-                    else:
-                        continue
-                columnNo +=1
-            rowNo += 1
-
+                        heightmap[row][column] = self.quants[boundary]
+                    if column == lowest_height:
+                        heightmap[row][column] = self.quants[0]
         return heightmap
 
-    def terrainPass(self, seedy):
+    def terrainPass(self, seedyVar):
 
-        terrainMap = self.generateNoiseHeight(seedy)
+        heightMap = self.generateNoiseHeight(seedyVar)
 
-        type_sea = 0
-        type_land = 1
-        type_air = 2
-        # type_sea = [0, 1, 2, 3, 4]
-        # type_land = [5, 6, 7, 8]
-        # type_air = 9
+        # type_sea = 0
+        # type_land = 1
+        # type_air = 2
+
+        #type_tile = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        print(heightMap)
+        print(self.quants)
+        for layer in range(0, self.maxLayers): # checking each layer on the y axis
+
+            for row in range(0, self.grid_size): # checking each item on the z axis
+
+                for column in range(0, self.grid_size): # checking each item on the x axis of the initialised grid.
+                    #print(f"Coords: {column}, {row}, Layer: {layer} ")
+                    tmpVal = heightMap[row][column]
+
+                    if (layer < 4) and (5 - abs(tmpVal)) == layer:
+                        if (layer == 0):
+                            self.world_grid[layer][row][column] = 5
+                        else:
+                            self.world_grid[layer][row][column] = 5 - abs(tmpVal)
+                    elif (layer < 4) and ((5 - abs(tmpVal)) < layer):
+                        self.world_grid[layer][row][column] = 5
+                    elif (layer < 4) and ((5 - abs(tmpVal)) > layer):
+                        self.world_grid[layer][row][column] = 5
+
+                    elif (layer > 5) and ((5 + abs(tmpVal)) == layer):
+                        self.world_grid[layer][row][column] = 5 + abs(tmpVal)
+                    elif (layer > 5) and ((5 + abs(tmpVal)) < layer):
+                        self.world_grid[layer][row][column] = 9
+                    elif (layer > 5) and ((5 + abs(tmpVal)) > layer):
+                        self.world_grid[layer][row][column] = 0
+
+                    # if (layer < 4) and ((5 - abs(heightMap[layer])) == layer): # Only for sea values (below -4 on the map) and on the right layer
+                    #     if (layer < 4) and (layer == 0): # exception for layer 0
+                    #         self.world_grid[layer][row][column] = 5
+                    #         print(self.world_grid[layer][row][column])
+                    #     else:
+                    #         self.world_grid[layer][row][column] = 5 - abs(heightMap[row][column])
+                    # elif (layer < 4) and ((5 - abs(self.quants[layer]) > layer)): # Only for sea values and there is a sea above but not below
+                    #     self.world_grid[layer][row][column] = 5
 
 
+                    # elif (layer > 5) and ((5 + self.quants[layer]) == layer): # Above sea and right layer
+                    #     self.world_grid[layer][row][column] = 0 + layer
+                    # elif (layer > 5) and ((5 + self.quants[layer]) < layer): # Above sea and there is land no land above
+                    #     self.world_grid[layer][row][column] = 9
+                    # elif (layer > 5) and ((5 + self.quants[layer]) > layer): # Above the sea and there is land above
+                    #     self.world_grid[layer][row][column] = 0
 
-        layerNo = 0
-        #print(self.quants)
-        for layer in range(0, self.maxLayers):
-            rowNo = 0 # resets every new layer
-
-            for row in range(0, self.grid_size):
-
-                for column in range(0, self.grid_size): # checking each column of the initialised grid.
-
-                    if self.quants[layerNo] < 0:
-                        if (terrainMap[rowNo][column] < self.quants[layerNo]) and (terrainMap[rowNo][column] < 0): # if the noise says it is less than the layer and the layer is below zero than it is land
-                            self.world_grid[layerNo][rowNo][column] = type_sea
-                        elif (terrainMap[rowNo][column] > self.quants[layerNo]) and (terrainMap[rowNo][column] < 0): # if the noise says it is more than the layer and the layer is more than or equal to zero than it is sea
-                            self.world_grid[layerNo][rowNo][column] = type_land
-                        elif (terrainMap[rowNo][column] == self.quants[layerNo]) and (terrainMap[rowNo][column] < 0): 
-                            self.world_grid[layerNo][rowNo][column] = type_sea
-                        elif (terrainMap[rowNo][column] > self.quants[layerNo]) and (terrainMap[rowNo][column] >= 0): 
-                            self.world_grid[layerNo][rowNo][column] = type_land
-                    else:
-                        if (terrainMap[rowNo][column] < self.quants[layerNo]) and (terrainMap[rowNo][column] < 0):
-                            self.world_grid[layerNo][rowNo][column] = type_air
-                        elif (terrainMap[rowNo][column] > self.quants[layerNo]):
-                            self.world_grid[layerNo][rowNo][column] = type_land
-                        elif (terrainMap[rowNo][column] == self.quants[layerNo]):
-                            self.world_grid[layerNo][rowNo][column] = type_land
-                        elif (terrainMap[rowNo][column] < self.quants[layerNo]) and (terrainMap[rowNo][column] >= 0):
-                            self.world_grid[layerNo][rowNo][column] = type_air
-
-
-                rowNo += 1
-
-            layerNo += 1
 
 
     def initiateGeneration(self, seedyVar):
 
         seedy = seedyVar.get()
         seedy = seedy.strip()
+
         self.initialiseGrid()
         self.terrainPass(seedy)
+        #print(self.world_grid[4])
         return self.world_grid
 
 
@@ -183,3 +190,6 @@ class World():
             for x in heightmap: # Should be printing the rows...
                 print(x, end='\n')
             grid_print = False # Concluded and so it will stop
+
+# map = World()
+# map.initiateGeneration("123ABC")
